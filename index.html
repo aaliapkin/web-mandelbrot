@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <!-- <link rel="icon" href="%PUBLIC_URL%/favicon.ico" /> -->
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mandelbruh</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400&display=swap" rel="stylesheet">
+</head>
+
+<body>
+  <noscript>You need to enable JavaScript to view this site.</noscript>
+  <script id="vertexShader" type="x-shader/x-vertex">#version 300 es
+    precision highp float;
+    layout(location = 0) in vec3 aPos;
+
+    out vec4 uv;
+
+    uniform mat4 u_MVP;
+
+    void main() {
+      gl_Position = vec4(aPos, 1.0);
+      uv = inverse(u_MVP) * gl_Position;
+    }
+  </script>
+  <script id="fragmentShader" type="x-shader/x-fragment">#version 300 es
+    
+    precision highp float;
+    #define MAX_ITERATIONS 255.0
+    
+    out vec4 FragColor;
+    in vec4 uv;
+    
+    uniform vec4 u_bounds;
+    
+    float map(float value, float min1, float max1, float min2, float max2) {
+        return min2 + (value - min1) * (max2 - min2) / (max1 - min1);
+    }
+    
+    void main()
+    {
+        vec2 c = vec2(
+            map(uv.x, -1.0, 1.0, u_bounds.x, u_bounds.y),
+            map(uv.y, -1.0, 1.0, u_bounds.z, u_bounds.w)
+        );
+    
+        vec2 z;
+        float iter;    
+        for (iter = 0.0; iter < MAX_ITERATIONS; iter++) {
+            z = vec2(z.x * z.x - z.y * z.y, 2.0 * z.x * z.y) + c;
+            if (length(z) > 2.0) break;
+        }
+    
+        float t = (iter == MAX_ITERATIONS) ? 0.0 : (iter / MAX_ITERATIONS);
+    
+        FragColor = vec4(
+             9.0 * (1.0 - t) * t * t * t,
+            15.0 * (1.0 - t) * (1.0 - t) * t * t,
+             8.5 * (1.0 - t) * (1.0 - t) * (1.0 - t) * t,
+            1.0);
+    }
+  </script>
+  <script src="./script.js"></script>
+</body>
+
+</html>
